@@ -1,61 +1,59 @@
-# Kairos · Usuarios — herramienta INTERNA / LOCAL
+# Kairos · Users — INTERNAL / LOCAL tool
 
-> ⚠️ **USO LOCAL ÚNICAMENTE. NO DESPLEGAR.**
-> Muestra, sin login, **todos los usuarios** y sus solicitudes/documentos
-> (datos personales y financieros reales). Solo debe correr en la máquina del
-> operador autorizado (`localhost`).
+> ⚠️ **LOCAL USE ONLY. DO NOT DEPLOY.**
+> Shows, with no login, **all users** and their applications/documents (real
+> personal and financial data). It should only run on the authorized operator's
+> machine (`localhost`).
 
-## Por qué es local y no se despliega
+## Why it is local and not deployed
 
-Para leer datos protegidos por RLS hace falta la **service key** (admin). Esa
-llave vive **solo en el servidor de Vite** (`vite.config.js`, lado Node) y se lee
-de `.env.local` con variables **sin** prefijo `VITE_`, de modo que **nunca** entra
-al bundle del navegador. El API `/api/*` **solo existe en `npm run dev`**: si se
-hiciera `build`/deploy, no habría API y no se filtraría la llave — pero tampoco
-mostraría datos. Por diseño, es una herramienta local.
+Reading data protected by RLS requires the **service key** (admin). That key lives
+**only in the Vite server** (`vite.config.js`, Node side) and is read from
+`.env.local` using variables **without** the `VITE_` prefix, so it **never** enters
+the browser bundle. The `/api/*` endpoint **only exists during `npm run dev`**: if
+you ran `build`/deploy, there would be no API and the key would not leak — but it
+also would not show any data. By design, it is a local tool.
 
-Si en el futuro se necesita acceso remoto del equipo, NO se debe exponer así:
-habría que ponerle autenticación (p. ej. login de director) o una protección de
-acceso (contraseña de despliegue), nunca dejarlo público con la service key.
+If remote team access is ever needed, it must NOT be exposed like this: it would
+need authentication (e.g. a director login) or an access gate (deployment
+password), never left public with the service key.
 
-## Uso
+## Usage
 
 ```bash
 npm install
-cp .env.example .env.local     # y completa SUPABASE_URL + SUPABASE_SERVICE_KEY
-npm run dev                    # abre http://localhost:5176
+cp .env.example .env.local     # then fill in SUPABASE_URL + SUPABASE_SERVICE_KEY
+npm run dev                    # open http://localhost:5176
 ```
 
-`.env.local` está en `.gitignore` (al igual que cualquier `.env*`): la service key
-**no se versiona**.
+`.env.local` is in `.gitignore` (as is any `.env*`): the service key **is not
+committed**.
 
-## Qué muestra
+## What it shows
 
-- **Lista de todos los usuarios** (de Supabase Auth) en la página principal.
-- Por usuario: correo, nombre, **rol** (cliente/analista/director), fecha de alta,
-  último acceso y si el correo está confirmado.
-- Al hacer clic en un usuario se abre su **página de detalle** (`#u/<id>`, con
-  botón "Volver", recargable y deep-linkable): datos de la cuenta + todas sus
-  **solicitudes** (folio, estado, datos, monto, domicilio, etc.) y sus
-  **documentos**, con botón para abrirlos vía enlace firmado temporal del bucket
-  privado.
-- Buscador por correo, nombre, rol o folio; y un resumen (totales).
-- **Filtro por tipo de usuario** (chips: Todos / Cliente / Analista / Director /
-  Sin perfil, con conteos).
-- **Paginación** (tamaño de página configurable: 10/25/50/100).
-- **Selección por fila (checkbox)** + "Seleccionar todo" (sobre el filtrado) y
-  **Exportar CSV** de los usuarios seleccionados.
+- **List of all users** (from Supabase Auth) on the home page.
+- Per user: email, name, **role** (client/analyst/director), signup date, last
+  login, and whether the email is confirmed.
+- Clicking a user opens their **detail page** (`#u/<id>`, with a "Back" button,
+  reloadable and deep-linkable): account data + all their **applications** (folio,
+  status, data, amount, address, etc.) and their **documents**, with a button to
+  open them via a temporary signed URL from the private bucket.
+- Search by email, name, role or folio; and a summary (totals).
+- **User-type filter** (chips: All / Client / Analyst / Director / No profile,
+  with counts).
+- **Pagination** (configurable page size: 10/25/50/100).
+- **Row selection (checkbox)** + "Select all" (over the filtered set) and
+  **Export CSV** of the selected users.
 
-## Seguridad
+## Security
 
-- La service key es secreta: si se compartió, **rótala** en Supabase.
-- Esta herramienta concentra PII real (CURP, RFC, domicilio, ingresos,
-  documentos). Trátala como confidencial; no la dejes abierta en equipos
-  compartidos y no la despliegues.
+- The service key is secret: if it was shared, **rotate it** in Supabase.
+- This tool concentrates real PII (CURP, RFC, address, income, documents). Treat
+  it as confidential; do not leave it open on shared machines and do not deploy it.
 
-## Variables de entorno
+## Environment variables
 
-| Variable               | Descripción                                            |
+| Variable               | Description                                            |
 | ---------------------- | ------------------------------------------------------ |
-| `SUPABASE_URL`         | URL del proyecto Supabase                              |
-| `SUPABASE_SERVICE_KEY` | **service/secret key** (admin) — solo lado servidor    |
+| `SUPABASE_URL`         | Supabase project URL                                   |
+| `SUPABASE_SERVICE_KEY` | **service/secret key** (admin) — server side only      |

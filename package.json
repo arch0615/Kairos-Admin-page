@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Kairos Capital — Herramienta INTERNA/LOCAL para ver todos los usuarios y sus solicitudes. NO desplegar.",
+  "description": "Kairos Capital — INTERNAL/LOCAL tool to view all users and their applications. DO NOT deploy.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

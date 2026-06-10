@@ -3,8 +3,8 @@ node_modules
 dist
 dist-ssr
 
-# TODAS las variables de entorno se ignoran: aquí vive la SERVICE KEY (secreta).
-# Nunca se versiona ningún archivo .env en esta herramienta.
+# ALL env files are ignored: the SERVICE KEY (secret) lives here.
+# No .env file is ever committed in this tool.
 .env
 .env.*
 

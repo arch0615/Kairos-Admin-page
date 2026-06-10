@@ -3,12 +3,12 @@ import react from "@vitejs/plugin-react";
 import { createClient } from "@supabase/supabase-js";
 
 /*
- * Herramienta INTERNA/LOCAL. La SERVICE KEY se usa SOLO aquí (lado servidor de
- * Vite, Node). Las variables NO llevan prefijo VITE_, así que jamás entran al
- * bundle del navegador. El API /api/* solo existe en `npm run dev`.
+ * INTERNAL/LOCAL tool. The SERVICE KEY is used ONLY here (Vite server side,
+ * Node). The variables have no VITE_ prefix, so they never enter the browser
+ * bundle. The /api/* endpoint only exists during `npm run dev`.
  */
 export default defineConfig(({ mode }) => {
-  const env = loadEnv(mode, process.cwd(), ""); // carga todas las vars (incl. las no-VITE)
+  const env = loadEnv(mode, process.cwd(), ""); // load all vars (incl. non-VITE ones)
   const url = env.SUPABASE_URL;
   const key = env.SUPABASE_SERVICE_KEY;
   const supabase = url && key
@@ -26,7 +26,7 @@ export default defineConfig(({ mode }) => {
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
         if (!req.url || !req.url.startsWith("/api/")) return next();
-        if (!supabase) return json(res, 500, { error: "Faltan SUPABASE_URL / SUPABASE_SERVICE_KEY en .env.local" });
+        if (!supabase) return json(res, 500, { error: "Missing SUPABASE_URL / SUPABASE_SERVICE_KEY in .env.local" });
         try {
           const u = new URL(req.url, "http://localhost");
           if (u.pathname === "/api/users") {
@@ -34,12 +34,12 @@ export default defineConfig(({ mode }) => {
           }
           if (u.pathname === "/api/doc-url") {
             const path = u.searchParams.get("path");
-            if (!path) return json(res, 400, { error: "falta path" });
+            if (!path) return json(res, 400, { error: "missing path" });
             const { data, error } = await supabase.storage.from("documentos").createSignedUrl(path, 300);
             if (error) throw error;
             return json(res, 200, { url: data.signedUrl });
           }
-          return json(res, 404, { error: "no encontrado" });
+          return json(res, 404, { error: "not found" });
         } catch (e) {
           return json(res, 500, { error: String(e?.message || e) });
         }
@@ -53,7 +53,7 @@ export default defineConfig(({ mode }) => {
   };
 });
 
-// Reúne: usuarios de Auth + su perfil/rol + sus solicitudes + documentos.
+// Gather: Auth users + their profile/role + their applications + documents.
 async function getAllUsers(supabase) {
   const { data: authData, error: aErr } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 });
   if (aErr) throw aErr;
@@ -85,11 +85,11 @@ async function getAllUsers(supabase) {
     solicitudes: solByUser[usr.id] || [],
   }));
 
-  // Resumen
+  // Summary
   const summary = {
     total: users.length,
     porRol: users.reduce((acc, u) => ((acc[u.role] = (acc[u.role] || 0) + 1), acc), {}),
-    totalSolicitudes: (solicitudes || []).length,
+    totalApplications: (solicitudes || []).length,
   };
   return { summary, users };
 }

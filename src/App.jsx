@@ -1,9 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
 
 /* ═══════════════════════════════════════════════════════════════
-   KAIROS · Usuarios (herramienta INTERNA/LOCAL)
-   Sin login. Muestra TODOS los usuarios + sus solicitudes y documentos.
-   Los datos llegan de /api/users (servidor de Vite con la service key).
+   KAIROS · Users (INTERNAL/LOCAL tool)
+   No login. Shows ALL users + their applications and documents.
+   Data comes from /api/users (Vite server using the service key).
 ═══════════════════════════════════════════════════════════════ */
 
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');`;
@@ -16,24 +16,24 @@ const K = {
 };
 
 const STATUS = {
-  enviada:   { label:"Enviada",     color:K.grayMid,  bg:"rgba(148,163,184,0.12)", bd:"rgba(148,163,184,0.3)" },
-  revision:  { label:"En revisión", color:K.blueLight,bg:"rgba(26,86,219,0.12)",  bd:"rgba(26,86,219,0.3)" },
-  aprobada:  { label:"Aprobada",    color:K.green,    bg:"rgba(34,197,94,0.12)",  bd:"rgba(34,197,94,0.3)" },
-  rechazada: { label:"Rechazada",   color:K.red,      bg:"rgba(239,68,68,0.1)",   bd:"rgba(239,68,68,0.28)" },
+  enviada:   { label:"Submitted",    color:K.grayMid,  bg:"rgba(148,163,184,0.12)", bd:"rgba(148,163,184,0.3)" },
+  revision:  { label:"Under review", color:K.blueLight,bg:"rgba(26,86,219,0.12)",  bd:"rgba(26,86,219,0.3)" },
+  aprobada:  { label:"Approved",     color:K.green,    bg:"rgba(34,197,94,0.12)",  bd:"rgba(34,197,94,0.3)" },
+  rechazada: { label:"Rejected",     color:K.red,      bg:"rgba(239,68,68,0.1)",   bd:"rgba(239,68,68,0.28)" },
 };
 const ROLE = {
   director: { label:"Director", color:K.electric,  bg:"rgba(14,165,233,0.12)", bd:"rgba(14,165,233,0.3)" },
-  analista: { label:"Analista", color:K.blueLight, bg:"rgba(26,86,219,0.12)",  bd:"rgba(26,86,219,0.3)" },
-  cliente:  { label:"Cliente",  color:K.grayMid,   bg:"rgba(148,163,184,0.1)", bd:"rgba(148,163,184,0.25)" },
-  "—":      { label:"sin perfil", color:K.gray,    bg:"rgba(100,116,139,0.1)", bd:"rgba(100,116,139,0.2)" },
+  analista: { label:"Analyst",  color:K.blueLight, bg:"rgba(26,86,219,0.12)",  bd:"rgba(26,86,219,0.3)" },
+  cliente:  { label:"Client",   color:K.grayMid,   bg:"rgba(148,163,184,0.1)", bd:"rgba(148,163,184,0.25)" },
+  "—":      { label:"no profile", color:K.gray,    bg:"rgba(100,116,139,0.1)", bd:"rgba(100,116,139,0.2)" },
 };
 
 const ROLE_FILTERS = [
-  { key:"todas", label:"Todos" },
-  { key:"cliente", label:"Cliente" },
-  { key:"analista", label:"Analista" },
+  { key:"all", label:"All" },
+  { key:"cliente", label:"Client" },
+  { key:"analista", label:"Analyst" },
   { key:"director", label:"Director" },
-  { key:"—", label:"Sin perfil" },
+  { key:"—", label:"No profile" },
 ];
 
 function downloadCSV(rows, filename) {
@@ -48,9 +48,9 @@ function downloadCSV(rows, filename) {
   URL.revokeObjectURL(url);
 }
 
-const mxn = n => n==null ? "—" : new Intl.NumberFormat("es-MX",{style:"currency",currency:"MXN",maximumFractionDigits:0}).format(n);
-const fdate = s => { if(!s) return "—"; const d=new Date(s); return d.toLocaleDateString("es-MX",{day:"2-digit",month:"short",year:"numeric"})+" "+d.toLocaleTimeString("es-MX",{hour:"2-digit",minute:"2-digit"}); };
-const fday = s => { if(!s) return "—"; return new Date(s).toLocaleDateString("es-MX",{day:"2-digit",month:"short",year:"numeric"}); };
+const mxn = n => n==null ? "—" : new Intl.NumberFormat("en-US",{style:"currency",currency:"MXN",maximumFractionDigits:0}).format(n);
+const fdate = s => { if(!s) return "—"; const d=new Date(s); return d.toLocaleDateString("en-US",{day:"2-digit",month:"short",year:"numeric"})+" "+d.toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"}); };
+const fday = s => { if(!s) return "—"; return new Date(s).toLocaleDateString("en-US",{day:"2-digit",month:"short",year:"numeric"}); };
 
 const CSS = `
 ${FONTS}
@@ -133,16 +133,16 @@ function Solicitud({ s, onDoc }) {
         <Pill map={STATUS} k={s.status} />
       </div>
       <dl className="u-kv">
-        <div><dt>Nombre</dt><dd>{s.nombre || "—"}</dd></div>
-        <div><dt>Teléfono</dt><dd>{s.telefono || "—"}</dd></div>
+        <div><dt>Name</dt><dd>{s.nombre || "—"}</dd></div>
+        <div><dt>Phone</dt><dd>{s.telefono || "—"}</dd></div>
         <div><dt>RFC</dt><dd>{s.rfc || "—"}</dd></div>
         <div><dt>CURP</dt><dd>{s.curp || "—"}</dd></div>
-        <div><dt>Monto</dt><dd>{mxn(s.monto)}</dd></div>
-        <div><dt>Plazo</dt><dd>{s.plazo!=null?`${s.plazo} meses`:"—"}</dd></div>
-        <div><dt>Ingreso</dt><dd>{mxn(s.ingreso)}</dd></div>
-        <div><dt>Empleo</dt><dd>{s.tipo_empleo || "—"}</dd></div>
-        <div><dt>Domicilio</dt><dd>{[s.calle,s.colonia,s.municipio,s.estado_rep,s.cp].filter(Boolean).join(", ") || "—"}</dd></div>
-        <div><dt>Creada</dt><dd>{fday(s.created_at)}</dd></div>
+        <div><dt>Amount</dt><dd>{mxn(s.monto)}</dd></div>
+        <div><dt>Term</dt><dd>{s.plazo!=null?`${s.plazo} months`:"—"}</dd></div>
+        <div><dt>Income</dt><dd>{mxn(s.ingreso)}</dd></div>
+        <div><dt>Employment</dt><dd>{s.tipo_empleo || "—"}</dd></div>
+        <div><dt>Address</dt><dd>{[s.calle,s.colonia,s.municipio,s.estado_rep,s.cp].filter(Boolean).join(", ") || "—"}</dd></div>
+        <div><dt>Created</dt><dd>{fday(s.created_at)}</dd></div>
       </dl>
       {s.documentos.length > 0 && (
         <div className="u-docs">
@@ -152,7 +152,7 @@ function Solicitud({ s, onDoc }) {
                 <div className="u-doc-t">{d.tipo}</div>
                 <div className="u-doc-n">{d.nombre_archivo || d.storage_path.split("/").pop()}</div>
               </div>
-              <button className="u-btn" onClick={() => onDoc(d.storage_path)}>⬇ Ver</button>
+              <button className="u-btn" onClick={() => onDoc(d.storage_path)}>⬇ View</button>
             </div>
           ))}
         </div>
@@ -167,7 +167,7 @@ function UserCard({ u, onOpen, selected, onToggleSelect }) {
     <div className="u-card">
       <div className="u-card-head" onClick={() => onOpen(u.id)}>
         <input type="checkbox" className="u-check" checked={selected}
-          onClick={e => e.stopPropagation()} onChange={() => onToggleSelect(u.id)} title="Seleccionar" />
+          onClick={e => e.stopPropagation()} onChange={() => onToggleSelect(u.id)} title="Select" />
         <div className="u-avatar">{initial}</div>
         <div className="u-id">
           <div className="u-email">{u.email}</div>
@@ -175,24 +175,24 @@ function UserCard({ u, onOpen, selected, onToggleSelect }) {
         </div>
         <Pill map={ROLE} k={u.role} />
         <div className="u-meta">
-          <span>Alta: <b>{fday(u.created_at)}</b></span>
-          <span>Último acceso: <b>{u.last_sign_in_at ? fdate(u.last_sign_in_at) : "nunca"}</b></span>
-          <span>Correo: <b>{u.email_confirmed_at ? "confirmado" : "sin confirmar"}</b></span>
+          <span>Created: <b>{fday(u.created_at)}</b></span>
+          <span>Last login: <b>{u.last_sign_in_at ? fdate(u.last_sign_in_at) : "never"}</b></span>
+          <span>Email: <b>{u.email_confirmed_at ? "confirmed" : "unconfirmed"}</b></span>
         </div>
-        <span className="u-count">{u.solicitudes.length} solicitud{u.solicitudes.length===1?"":"es"}</span>
+        <span className="u-count">{u.solicitudes.length} application{u.solicitudes.length===1?"":"s"}</span>
         <span className="u-chev">→</span>
       </div>
     </div>
   );
 }
 
-// ── Página de detalle de un usuario ──
+// ── User detail page ──
 function UserDetail({ u, onBack, onDoc }) {
   const initial = (u.email || "?").charAt(0).toUpperCase();
   const mono = { fontFamily: "'JetBrains Mono',monospace" };
   return (
     <div className="kfade">
-      <button className="u-back" onClick={onBack}>← Volver a la lista</button>
+      <button className="u-back" onClick={onBack}>← Back to list</button>
 
       <div className="u-detail-head">
         <div className="u-avatar u-avatar-lg">{initial}</div>
@@ -204,21 +204,21 @@ function UserDetail({ u, onBack, onDoc }) {
       </div>
 
       <div className="u-card" style={{padding:18}}>
-        <div className="u-detail-lbl">Cuenta</div>
+        <div className="u-detail-lbl">Account</div>
         <dl className="u-kv">
           <div><dt>ID</dt><dd style={mono}>{u.id}</dd></div>
-          <div><dt>Correo</dt><dd>{u.email}</dd></div>
-          <div><dt>Teléfono</dt><dd>{u.phone || "—"}</dd></div>
-          <div><dt>Rol</dt><dd>{ROLE[u.role]?.label || u.role}</dd></div>
-          <div><dt>Alta</dt><dd>{fdate(u.created_at)}</dd></div>
-          <div><dt>Último acceso</dt><dd>{u.last_sign_in_at ? fdate(u.last_sign_in_at) : "nunca"}</dd></div>
-          <div><dt>Correo confirmado</dt><dd>{u.email_confirmed_at ? fdate(u.email_confirmed_at) : "no"}</dd></div>
+          <div><dt>Email</dt><dd>{u.email}</dd></div>
+          <div><dt>Phone</dt><dd>{u.phone || "—"}</dd></div>
+          <div><dt>Role</dt><dd>{ROLE[u.role]?.label || u.role}</dd></div>
+          <div><dt>Created</dt><dd>{fdate(u.created_at)}</dd></div>
+          <div><dt>Last login</dt><dd>{u.last_sign_in_at ? fdate(u.last_sign_in_at) : "never"}</dd></div>
+          <div><dt>Email confirmed</dt><dd>{u.email_confirmed_at ? fdate(u.email_confirmed_at) : "no"}</dd></div>
         </dl>
       </div>
 
-      <div className="u-detail-lbl" style={{margin:"20px 0 4px"}}>Solicitudes ({u.solicitudes.length})</div>
+      <div className="u-detail-lbl" style={{margin:"20px 0 4px"}}>Applications ({u.solicitudes.length})</div>
       {u.solicitudes.length === 0
-        ? <div className="u-empty" style={{padding:"30px 0"}}>Este usuario no tiene solicitudes.</div>
+        ? <div className="u-empty" style={{padding:"30px 0"}}>This user has no applications.</div>
         : u.solicitudes.map(s => <Solicitud key={s.id} s={s} onDoc={onDoc} />)}
     </div>
   );
@@ -229,16 +229,16 @@ export default function App() {
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
-  const [roleFilter, setRoleFilter] = useState("todas");
+  const [roleFilter, setRoleFilter] = useState("all");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [selected, setSelected] = useState(() => new Set());
-  const [view, setView] = useState(null); // null = lista, o el id del usuario en detalle (sincronizado con el hash)
+  const [view, setView] = useState(null); // null = list, or the user id in detail (synced with the hash)
 
   const openUser = (id) => { window.location.hash = `#u/${encodeURIComponent(id)}`; };
   const backToList = () => { window.location.hash = ""; };
 
-  // Detalle navegable por hash (#u/<id>): soporta recargar y el botón Atrás del navegador.
+  // Detail navigable via hash (#u/<id>): supports reload and the browser Back button.
   useEffect(() => {
     const apply = () => {
       const m = window.location.hash.match(/^#u\/(.+)$/);
@@ -264,14 +264,14 @@ export default function App() {
       const j = await r.json();
       if (!r.ok) throw new Error(j.error);
       window.open(j.url, "_blank", "noopener");
-    } catch (e) { alert("No se pudo abrir el documento: " + e.message); }
+    } catch (e) { alert("Could not open the document: " + e.message); }
   };
 
   const filtered = useMemo(() => {
     if (!data) return [];
     const s = q.trim().toLowerCase();
     return data.users.filter(u => {
-      if (roleFilter !== "todas" && u.role !== roleFilter) return false;
+      if (roleFilter !== "all" && u.role !== roleFilter) return false;
       if (!s) return true;
       return (u.email||"").toLowerCase().includes(s) ||
         (u.nombre||"").toLowerCase().includes(s) ||
@@ -280,14 +280,14 @@ export default function App() {
     });
   }, [data, q, roleFilter]);
 
-  // Conteo por rol (para los chips del filtro)
+  // Count per role (for the filter chips)
   const roleCounts = useMemo(() => {
     const c = { todas: data?.users.length || 0 };
     (data?.users || []).forEach(u => { c[u.role] = (c[u.role] || 0) + 1; });
     return c;
   }, [data]);
 
-  // Al cambiar filtro/búsqueda/tamaño, volver a la página 1.
+  // When filter/search/size changes, go back to page 1.
   useEffect(() => { setPage(1); }, [q, roleFilter, pageSize]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
@@ -295,7 +295,7 @@ export default function App() {
   const start = (safePage - 1) * pageSize;
   const pageItems = filtered.slice(start, start + pageSize);
 
-  // ── Selección (checkboxes) ──
+  // ── Selection (checkboxes) ──
   const toggleSelect = (id) => setSelected(prev => {
     const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n;
   });
@@ -311,14 +311,14 @@ export default function App() {
     const chosen = (data?.users || []).filter(u => selected.has(u.id));
     downloadCSV(chosen.map(u => ({
       email: u.email,
-      nombre: u.nombre || "",
-      rol: u.role,
-      alta: u.created_at || "",
-      ultimo_acceso: u.last_sign_in_at || "",
-      correo_confirmado: u.email_confirmed_at ? "si" : "no",
-      num_solicitudes: u.solicitudes.length,
+      name: u.nombre || "",
+      role: u.role,
+      created: u.created_at || "",
+      last_login: u.last_sign_in_at || "",
+      email_confirmed: u.email_confirmed_at ? "yes" : "no",
+      num_applications: u.solicitudes.length,
       folios: u.solicitudes.map(s => s.folio).join(" | "),
-    })), `kairos-usuarios-${chosen.length}.csv`);
+    })), `kairos-users-${chosen.length}.csv`);
   };
 
   return (
@@ -327,15 +327,15 @@ export default function App() {
       <div className="u">
         <header className="u-top">
           <div>
-            <span className="u-title">KAIROS · USUARIOS</span>
-            <span className="u-badge-int">Interno · Local</span>
+            <span className="u-title">KAIROS · USERS</span>
+            <span className="u-badge-int">Internal · Local</span>
           </div>
-          {!view && <input className="u-search" placeholder="Buscar por correo, nombre, rol o folio…" value={q} onChange={e=>setQ(e.target.value)} />}
+          {!view && <input className="u-search" placeholder="Search by email, name, role or folio…" value={q} onChange={e=>setQ(e.target.value)} />}
         </header>
 
         <main className="u-main">
           {loading ? (
-            <div className="u-loading"><span className="u-spin"/> Cargando usuarios…</div>
+            <div className="u-loading"><span className="u-spin"/> Loading users…</div>
           ) : err ? (
             <div className="u-err">⚠ {err}</div>
           ) : view ? (
@@ -343,16 +343,16 @@ export default function App() {
               const detailUser = data.users.find(u => u.id === view);
               return detailUser
                 ? <UserDetail u={detailUser} onBack={backToList} onDoc={openDoc} />
-                : <div className="u-empty">Usuario no encontrado. <button className="u-btn" onClick={backToList}>Volver</button></div>;
+                : <div className="u-empty">User not found. <button className="u-btn" onClick={backToList}>Back</button></div>;
             })()
           ) : (
             <>
               <div className="u-summary">
-                <div className="u-stat"><div className="u-stat-n">{data.summary.total}</div><div className="u-stat-l">Usuarios</div></div>
-                <div className="u-stat"><div className="u-stat-n">{data.summary.totalSolicitudes}</div><div className="u-stat-l">Solicitudes</div></div>
+                <div className="u-stat"><div className="u-stat-n">{data.summary.total}</div><div className="u-stat-l">Users</div></div>
+                <div className="u-stat"><div className="u-stat-n">{data.summary.totalApplications}</div><div className="u-stat-l">Applications</div></div>
               </div>
 
-              {/* Filtro por tipo de usuario + seleccionar todo */}
+              {/* User-type filter + select all */}
               <div className="u-toolbar">
                 {ROLE_FILTERS.map(r => (
                   <button key={r.key} className={`u-chip${roleFilter===r.key?" on":""}`} onClick={()=>setRoleFilter(r.key)}>
@@ -362,22 +362,22 @@ export default function App() {
                 <span className="u-toolbar-sp" />
                 <label className="u-selall">
                   <input type="checkbox" className="u-check" checked={allFilteredSelected} onChange={toggleSelectAllFiltered} />
-                  Seleccionar todo{(roleFilter!=="todas"||q.trim()) ? " (filtrado)" : ""}
+                  Select all{(roleFilter!=="all"||q.trim()) ? " (filtered)" : ""}
                 </label>
               </div>
 
-              {/* Barra de selección */}
+              {/* Selection bar */}
               {selected.size > 0 && (
                 <div className="u-selbar">
-                  <b>{selected.size}</b> usuario(s) seleccionado(s)
+                  <b>{selected.size}</b> user(s) selected
                   <span className="u-toolbar-sp" />
-                  <button className="u-btn" onClick={exportSelected}>⬇ Exportar CSV</button>
-                  <button className="u-btn" onClick={clearSelection}>Limpiar</button>
+                  <button className="u-btn" onClick={exportSelected}>⬇ Export CSV</button>
+                  <button className="u-btn" onClick={clearSelection}>Clear</button>
                 </div>
               )}
 
               {filtered.length === 0
-                ? <div className="u-empty">No hay usuarios que coincidan.</div>
+                ? <div className="u-empty">No matching users.</div>
                 : pageItems.map(u => (
                     <UserCard key={u.id} u={u} onOpen={openUser}
                       selected={selected.has(u.id)} onToggleSelect={toggleSelect} />
@@ -385,12 +385,12 @@ export default function App() {
 
               {filtered.length > 0 && (
                 <div className="u-pager">
-                  <span>Mostrando {start+1}–{Math.min(start+pageSize, filtered.length)} de {filtered.length}</span>
-                  <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={safePage<=1}>← Anterior</button>
-                  <span>Página {safePage} de {totalPages}</span>
-                  <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={safePage>=totalPages}>Siguiente →</button>
+                  <span>Showing {start+1}–{Math.min(start+pageSize, filtered.length)} of {filtered.length}</span>
+                  <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={safePage<=1}>← Previous</button>
+                  <span>Page {safePage} of {totalPages}</span>
+                  <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} disabled={safePage>=totalPages}>Next →</button>
                   <select value={pageSize} onChange={e=>setPageSize(Number(e.target.value))}>
-                    {[10,25,50,100].map(n => <option key={n} value={n}>{n} / página</option>)}
+                    {[10,25,50,100].map(n => <option key={n} value={n}>{n} / page</option>)}
                   </select>
                 </div>
               )}

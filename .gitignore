@@ -1,0 +1,16 @@
+# Dependencies / build
+node_modules
+dist
+dist-ssr
+
+# TODAS las variables de entorno se ignoran: aquí vive la SERVICE KEY (secreta).
+# Nunca se versiona ningún archivo .env en esta herramienta.
+.env
+.env.*
+
+# Logs / editor / OS
+*.log
+.vscode/*
+.idea
+.DS_Store
+.vercel
